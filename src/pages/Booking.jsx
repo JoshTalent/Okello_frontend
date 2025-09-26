@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -23,6 +24,7 @@ const Booking = ({ defaultService }) => {
     time: "",
     message: "",
   });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (defaultService) {
@@ -38,20 +40,42 @@ const Booking = ({ defaultService }) => {
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Booking Data:", formData);
-    alert(`Thank you! Your booking for ${formData.service} has been submitted.`);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      service: defaultService || "",
-      date: "",
-      time: "",
-      message: "",
-    });
-    setStep(1);
+    setSubmitting(true);
+
+    const bookingPayload = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      service: formData.service,
+      date: formData.date,
+      time: formData.time,
+      message: formData.message || "No message",
+    };
+
+    try {
+      await axios.post(
+        "https://okellobackend-production.up.railway.app/booking",
+        bookingPayload
+      );
+      alert(`Thank you! Your booking for ${formData.service} has been submitted.`);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        service: defaultService || "",
+        date: "",
+        time: "",
+        message: "",
+      });
+      setStep(1);
+    } catch (err) {
+      console.error("Booking submission failed:", err);
+      alert("Failed to submit booking. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -88,6 +112,7 @@ const Booking = ({ defaultService }) => {
             ))}
           </div>
 
+          {/* Form */}
           <motion.form
             className="bg-gray-900 rounded-3xl shadow-2xl p-8 space-y-6"
             onSubmit={handleSubmit}
@@ -133,7 +158,7 @@ const Booking = ({ defaultService }) => {
               </motion.div>
             )}
 
-            {/* Step 2: Select Service & Date/Time */}
+            {/* Step 2: Service & Date/Time */}
             {step === 2 && (
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
@@ -177,7 +202,7 @@ const Booking = ({ defaultService }) => {
               </motion.div>
             )}
 
-            {/* Step 3: Additional Message & Confirmation */}
+            {/* Step 3: Additional Message & Summary */}
             {step === 3 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -194,24 +219,13 @@ const Booking = ({ defaultService }) => {
                 />
                 <div className="mt-4 bg-gray-800 rounded-xl p-4">
                   <h4 className="text-purple-500 font-bold mb-2">Summary</h4>
-                  <p>
-                    <strong>Service:</strong> {formData.service}
-                  </p>
-                  <p>
-                    <strong>Date:</strong> {formData.date}
-                  </p>
-                  <p>
-                    <strong>Time:</strong> {formData.time}
-                  </p>
-                  <p>
-                    <strong>Name:</strong> {formData.name}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {formData.email}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {formData.phone}
-                  </p>
+                  <p><strong>Service:</strong> {formData.service}</p>
+                  <p><strong>Date:</strong> {formData.date}</p>
+                  <p><strong>Time:</strong> {formData.time}</p>
+                  <p><strong>Name:</strong> {formData.name}</p>
+                  <p><strong>Email:</strong> {formData.email}</p>
+                  <p><strong>Phone:</strong> {formData.phone}</p>
+                  <p><strong>Message:</strong> {formData.message || "No message"}</p>
                 </div>
               </motion.div>
             )}
@@ -238,14 +252,12 @@ const Booking = ({ defaultService }) => {
               ) : (
                 <motion.button
                   type="submit"
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 0 20px rgba(128,0,255,0.6)",
-                  }}
+                  disabled={submitting}
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(128,0,255,0.6)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="ml-auto px-6 py-2 rounded-full bg-purple-500 text-white shadow-lg hover:bg-purple-600 transition"
+                  className="ml-auto px-6 py-2 rounded-full bg-purple-500 text-white shadow-lg hover:bg-purple-600 transition disabled:opacity-50"
                 >
-                  Submit Booking
+                  {submitting ? "Submitting..." : "Submit Booking"}
                 </motion.button>
               )}
             </div>

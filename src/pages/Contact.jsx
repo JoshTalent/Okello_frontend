@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import axios from "axios";
+
+const API_CONTACT = "https://okellobackend-production.up.railway.app/contact";
+
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -18,23 +22,37 @@ const Contact = () => {
     subject: "",
     message: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Contact Form Data:", formData);
-    alert("Thank you! Your message has been sent.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setLoading(true);
+    try {
+      const res = await axios.post(API_CONTACT, formData);
+      if (res.data.success) {
+        alert("Thank you! Your message has been sent.");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        alert("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error sending contact message:", err);
+      alert(err.response?.data?.message || "Failed to send message.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
+    <div className="relative bg-black text-white">
       <Navbar />
-      <section className="relative py-24 bg-black text-white">
+
+      <section className="relative py-24">
         <div className="max-w-7xl mx-auto px-6">
           {/* Section Title */}
           <motion.div
@@ -62,9 +80,7 @@ const Contact = () => {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h3 className="text-2xl font-bold text-purple-500">
-                Studio Info
-              </h3>
+              <h3 className="text-2xl font-bold text-purple-500">Studio Info</h3>
               <p className="text-gray-400">
                 Okello Studios <br />
                 Kigali, Rwanda <br />
@@ -87,31 +103,16 @@ const Contact = () => {
 
               {/* Social Media */}
               <div className="flex items-center space-x-4 mt-4">
-                <a
-                  href="#"
-                  target="_blank"
-                  className="text-purple-500 hover:text-white"
-                >
+                <a href="#" target="_blank" className="text-purple-500 hover:text-white">
                   <Linkedin size={28} />
                 </a>
-                <a
-                  href="#"
-                  target="_blank"
-                  className="text-purple-500 hover:text-white"
-                >
+                <a href="#" target="_blank" className="text-purple-500 hover:text-white">
                   <Twitter size={28} />
                 </a>
-                <a
-                  href="#"
-                  target="_blank"
-                  className="text-purple-500 hover:text-white"
-                >
+                <a href="#" target="_blank" className="text-purple-500 hover:text-white">
                   <Instagram size={28} />
                 </a>
-                <a
-                  href="mailto:contact@okellostudios.com"
-                  className="text-purple-500 hover:text-white"
-                >
+                <a href="mailto:contact@okellostudios.com" className="text-purple-500 hover:text-white">
                   <Mail size={28} />
                 </a>
               </div>
@@ -182,14 +183,17 @@ const Contact = () => {
 
               <motion.button
                 type="submit"
+                disabled={loading}
                 whileHover={{
                   scale: 1.05,
                   boxShadow: "0 0 20px rgba(128,0,255,0.6)",
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full py-3 font-semibold rounded-full bg-purple-500 text-white shadow-lg hover:bg-purple-600 transition"
+                className={`w-full py-3 font-semibold rounded-full bg-purple-500 text-white shadow-lg transition ${
+                  loading ? "opacity-70 cursor-not-allowed" : "hover:bg-purple-600"
+                }`}
               >
-                Send Message
+                {loading ? "Sending..." : "Send Message"}
               </motion.button>
             </motion.form>
           </div>
@@ -197,24 +201,25 @@ const Contact = () => {
 
         {/* Floating WhatsApp Button */}
         <a
-          href="https://wa.me/250788123456"
+          href="https://wa.me/250786026717"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-xl hover:bg-green-600 transition"
+          className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-xl hover:bg-green-600 transition"
         >
-          <MessageCircle size={28} />
+          <MessageCircle size={26} />
         </a>
 
         {/* Floating Call Button */}
         <a
-          href="tel:+250788123456"
-          className="fixed bottom-20 right-6 bg-purple-500 text-white p-4 rounded-full shadow-xl hover:bg-purple-600 transition"
+          href="tel:+250786026717"
+          className="fixed bottom-20 right-6 z-50 bg-purple-500 text-white p-4 rounded-full shadow-xl hover:bg-purple-600 transition"
         >
-          <Phone size={28} />
+          <Phone size={26} />
         </a>
       </section>
+
       <Footer />
-    </>
+    </div>
   );
 };
 
